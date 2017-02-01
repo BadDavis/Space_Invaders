@@ -100,6 +100,7 @@
     </Compile>
     <Compile Include="Model\Direction.cs" />
     <Compile Include="Model\Invader.cs" />
+    <Compile Include="Model\InvadersModel.cs" />
     <Compile Include="Model\InvaderType.cs" />
     <Compile Include="Model\Player.cs" />
     <Compile Include="Model\Ship.cs" />

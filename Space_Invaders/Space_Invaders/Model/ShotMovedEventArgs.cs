@@ -16,5 +16,6 @@ namespace Space_Invaders.Model
             Shot = shot;
             Dissapeared = dissapeared;
         }
+        //public event EventHandler<>
     }
 }
