@@ -9,22 +9,20 @@ namespace Space_Invaders.Model
 {
     class Invader : Ship
     {
-        public Point Location { get; private set; }
-        public Size InvaderSize { get; private set; }
-        InvaderType InvaderType;
+        //public Point Location { get; private set; }
+        public static Size InvaderSize = new Size(15, 25);
+        public InvaderType InvaderType { get; private set; }
         public int Score { get; set; }
 
 
-        public Invader(Point location, Size size) : base(location, size)
-        {
-            Location = location;
-            InvaderSize = size;
-        }
+        public const double HorizontalPixelsPerMove = 5;
+        public const double VerticalPixelsPerMove = 15;
 
-        public Invader(InvaderType type, int score)
+        public Invader(InvaderType invaderType, Point location, int score)
+            : base(location, InvaderSize)
         {
-            InvaderType = type;
-            Score += score;
+            InvaderType = invaderType;
+            Score = score;
         }
 
         public override void Move(Direction direction)
@@ -32,15 +30,15 @@ namespace Space_Invaders.Model
             switch (direction)
             {
                 case Direction.Left:
+                    Location = new Point(Location.X - HorizontalPixelsPerMove, Location.Y);
                     break;
 
                 case Direction.Right:
-                    break;
-
-                case Direction.Up:
+                    Location = new Point(Location.X + HorizontalPixelsPerMove, Location.Y);
                     break;
 
                 case Direction.Down:
+                    Location = new Point(Location.X, Location.Y + VerticalPixelsPerMove);
                     break;
 
                 default:
