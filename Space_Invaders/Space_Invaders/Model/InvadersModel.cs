@@ -202,7 +202,75 @@ namespace Space_Invaders.Model
 
         private void MoveInvader()
         {
+            TimeSpan lastMoveTime = DateTime.Now - _lastUpdated;
+            double timeBetweenMove = Math.Max(7 - Wave, 1) * (2 * _invaders.Count());
 
+            if (lastMoveTime >= TimeSpan.FromMilliseconds(timeBetweenMove))
+            {
+                _lastUpdated = DateTime.Now;
+
+                if (_invaderDirection == Direction.Right)
+                {
+                    var invadersReachedRight = from invader in _invaders
+                                               where invader.Area.Right > PlayAreaSize.Width - Invader.HorizontalPixelsPerMove * 2
+                                               select invader;
+
+                    if (invadersReachedRight.Count() > 0)
+                    {
+                        _invaderDirection = Direction.Down;
+                        foreach (Invader invader in _invaders)
+                        {
+                            invader.Move(_invaderDirection);
+                            OnShipChanged(invader, false);
+                        }
+
+                        _justMovedDown = true;
+                        _invaderDirection = Direction.Left;
+                    }
+                    else
+                    {
+                        _justMovedDown = false;
+                        foreach (Invader invader in _invaders)
+                        {
+                            invader.Move(_invaderDirection);
+                            OnShipChanged(invader, false);
+                        }
+                    }
+                }
+                else
+                {
+                    if (_invaderDirection == Direction.Left)
+                    {
+                        var invaderReachedLeft = from invader in _invaders
+                                                 where invader.Area.Left > Invader.HorizontalPixelsPerMove * 2
+                                                 select invader;
+
+                        if (invaderReachedLeft.Count() > 0)
+                        {
+                            _invaderDirection = Direction.Down;
+                            foreach (Invader invader in _invaders)
+                            {
+                                invader.Move(_invaderDirection);
+                                OnShipChanged(invader, false);
+                            }
+
+                            _justMovedDown = true;
+                            _invaderDirection = Direction.Right;
+                        }
+                        else
+                        {
+                            _justMovedDown = false;
+                            foreach (Invader invader in _invaders)
+                            {
+                                invader.Move(_invaderDirection);
+                                OnShipChanged(invader, false);
+                            }
+                        }
+                    }
+                }
+
+                ///cos pozniej
+            }
         }
 
         public void Twinkle()//dodawanie i usuwanie gwiazd
@@ -253,28 +321,87 @@ namespace Space_Invaders.Model
 
         private void CheckForPlayerCollisions()
         {
+            List<Shot> invaderShots = _invaderShot.ToList();
+
+            foreach (Shot shot in invaderShots)
+            {
+                Rect shotRect = new Rect(shot.Location.X, shot.Location.Y, Shot.ShotSize.Width, Shot.ShotSize.Height);
+
+                if (RectsOverLap(_player.Area, shotRect))
+                {
+                    if (Lives == 0)
+                    {
+                        EndGame();
+                    }
+                    else
+                    {
+                        _invaderShot.Remove(shot);
+                        OnShotChanged(shot, true);
+                        _playerDied = DateTime.Now;
+                        OnShipChanged(_player, true);
+                        RemoveShots();
+                        Lives--;
+                    }
+                }
+            }
+            if (invadersReachBottom.Count() > 0)
+            {
+                EndGame();
+            }
+        }
+
+        private void RemoveShots()
+        {
+            List<Shot> invaderShot = _invaderShot.ToList();
+            List<Shot> playershot = _playerShot.ToList();
+
+            foreach (Shot shots in invaderShot)
+            {
+                OnShotChanged(shots, true);
+            }
+
+            foreach (Shot shots in playershot)
+            {
+                OnShotChanged(shots, true);
+            }
+
+            _invaderShot.Clear();
+            _playerShot.Clear();
+        }
+
+        private static bool RectsOverlap(Rect r1, Rect r2)
+        {
+            r1.Intersect(r2);
+            if (r1.Width > 0 || r2.Height > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private void CheckForInvaderCollisions()
+        {
             List<Shot> playersShot = _playerShot.ToList();
-            List<Shot> invadersShot = _invaderShot.ToList();
+            List<Invader> invaders = _invaders.ToList();
 
             foreach (Shot shot in playersShot)
             {
                 Rect shotRect = new Rect(shot.Location.X, shot.Location.Y, Shot.ShotSize.Width,
                                          Shot.ShotSize.Height);
 
-                var invaderHit = from invader in invadersShot
-                                 where RectsOverLap(invader.Area, shotRect)
+                var invaderHit = from invader in invaders
+                                 where RectsOverlap(invader.Area, shotRect)
                                  select invader;
+
+                foreach (Invader deathInvader in invaderHit)
+                {
+                    _invaders.Remove(deathInvader);
+                    OnShipChanged(deathInvader, true);
+                    _playerShot.Remove(shot);
+                    OnShotChanged(shot, true);
+                    Score += deathInvader.Score;
+                }
             }
-        }
-
-        private object RectsOverLap(object area, Rect shotRect)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void CheckForInvaderCollisions()
-        {
-            throw new NotImplementedException();
         }
 
         private void MoveShots()
