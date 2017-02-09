@@ -103,20 +103,41 @@ namespace Space_Invaders.Model
 
         public void PlayerShot()//gracz strzela
         {
+
+            if (GameOver || PlayerDying || _lastUpdated == DateTime.MinValue)
+            {
+                return;
+            }
             if (_playerShot.Count() < MaximumPlayerShots)
             {
-                _playerShot.Add(new Shot(_player.Location, Direction.Up));
-                ShotMoved(_player, false);
+                Shot playerShot = new Shot(new Point(_player.Location.X + (_player.Size.Width / 2) - 1, _player.Location.Y),
+                    Direction.Up);
+                _playerShot.Add(playerShot);
+                OnShotChanged(playerShot, false);
             }
         }
 
         private void InvaderFire()
         {
-            if (_invaderShot.Count < 2)
+            if (_invaderShot.Count() > Wave + 1 || _random.Next(10) < 10 - Wave) //losowy obiekt strzela
             {
-                _invaderShot.Add(new Shot(_invader.Location, Direction.Down));
-                ShotChanged(_invader., false);
+                return;
             }
+
+            var invaderColumn = from invader in _invaders
+                                group invader by invader.Location.X
+                                into invaderGroup
+                                orderby invaderGroup.Key descending
+                                select invaderGroup;
+
+            var randomGroup = invaderColumn.ElementAt(_random.Next(invaderColumn.Count()));
+            var shoot = randomGroup.Last();
+
+            Point shotLocation = new Point(shoot.Area.X + (shoot.Size.Width / 2) - 1, shoot.Area.Bottom);
+            Shot shootingInvader = new Shot(shotLocation, Direction.Down);
+            _invaderShot.Add(shootingInvader);
+
+            OnShotChanged(shootingInvader, false);
         }
 
         private void NextWave()
@@ -125,15 +146,9 @@ namespace Space_Invaders.Model
             _invaders.Clear();
             InvaderType invader;
 
-
-            for (int i = 0; i < 66; i++)
-            {
-                //_invaders.Add()  tworzenie nowej fali
-            }
-
             _invaderDirection = Direction.Left;
 
-            for (int invaderRow = 0; invaderRow < 5; invaderRow++)
+            for (int invaderRow = 0; invaderRow < 6; invaderRow++)
             {
                 switch (invaderRow)
                 {
@@ -174,14 +189,14 @@ namespace Space_Invaders.Model
 
         public void MovePlayer(Direction direction)// ruch gracza
         {
-            if (PlayerDying == null)//jesli umarł to nic się nie dzieje
+            if (_playerDied.HasValue)//jesli umarł to nic się nie dzieje
             {
                 return;
             }
             else
             {
                 _player.Move(direction);
-                ShipChanged(_player, false);//zdarzenie zmiany polozenia statku
+                OnShipChanged(_player, false);//zdarzenie zmiany polozenia statku
             }
         }
 
@@ -192,18 +207,18 @@ namespace Space_Invaders.Model
 
         public void Twinkle()//dodawanie i usuwanie gwiazd
         {
-            Point starToRemove = _stars.ToList()[_random.Next(_stars.Count)];
+            Point starToRemove = _stars.ToList()[_random.Next(_stars.Count)]; // ///////////////////moze nie dzialac
             if (_random.Next(2) == 1 && _stars.Count < 1.5M * _stars.Count() && _stars.Count() > .15M * _stars.Count())
             {
                 _stars.Add(new Point(_random.Next(400), _random.Next(300)));
-                //StarChanged(starToRemove, false);
+                OnStarChanged(starToRemove, false);
             }
             else
             {
                 if (_stars.Count > _stars.Count * .15M)
                 {
                     _stars.Remove(starToRemove);
-                    StarChanged(starToRemove, true);
+                    OnStarChanged(starToRemove, true);
                 }
             }
         }
@@ -238,6 +253,22 @@ namespace Space_Invaders.Model
 
         private void CheckForPlayerCollisions()
         {
+            List<Shot> playersShot = _playerShot.ToList();
+            List<Shot> invadersShot = _invaderShot.ToList();
+
+            foreach (Shot shot in playersShot)
+            {
+                Rect shotRect = new Rect(shot.Location.X, shot.Location.Y, Shot.ShotSize.Width,
+                                         Shot.ShotSize.Height);
+
+                var invaderHit = from invader in invadersShot
+                                 where RectsOverLap(invader.Area, shotRect)
+                                 select invader;
+            }
+        }
+
+        private object RectsOverLap(object area, Rect shotRect)
+        {
             throw new NotImplementedException();
         }
 
@@ -252,7 +283,11 @@ namespace Space_Invaders.Model
         }
 
 
-        //eventy
+
+
+
+
+        ////////////////////eventy
         public event EventHandler<StarChangedEventArgs> StarChanged;
         private void OnStarChanged(Point starThatChanged, bool dissapeard)
         {
