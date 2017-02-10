@@ -412,6 +412,21 @@ namespace Space_Invaders.Model
 
 
 
+        public void UpdateAllShipsAndStars()
+        {
+            foreach (Shot shot in _playerShot)
+            {
+                OnShotChanged(shot, false);
+            }
+            foreach (Invader invader in _invaders)
+            {
+                OnShipChanged(invader, false);
+            }
+            foreach (Point star in _stars)
+            {
+                OnStarChanged(star, false);
+            }
+        }
 
 
         ////////////////////eventy

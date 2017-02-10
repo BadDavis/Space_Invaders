@@ -88,6 +88,21 @@ namespace Space_Invaders.View
             viewModel.KeyDown(e.VirtualKey);
         }
 
+        public void InvaderShot()
+        {
+            invaderShotStoryboard();
+        }
+
+        public void StartFlashing()
+        {
+            flashStoryboard.Begin();
+        }
+
+        public void StopFlashing()
+        {
+            flashStoryboard.Stop();
+        }
+
         private void UpdatePlayAreaSize(Size renderSize)
         {
             double targetWidth;
