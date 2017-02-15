@@ -66,6 +66,7 @@ namespace Space_Invaders.ViewModel
         }
 
 
+
         public void StartGame()
         {
             Paused = false;
@@ -165,9 +166,34 @@ namespace Space_Invaders.ViewModel
         }
 
 
-        
 
+        private void ModelShipChangedEventHandler(object sender, ShipChangedEventArgs e)
+        {
+            if (!e.Killed)
+            {
+                if (e.ShipUpdated is Invader)
+                {
+                    Invader invader = e.ShipUpdated as Invader;
+                    if (!_invaders.ContainsKey(invader))
+                    {
+                        FrameworkElement invaderControl = InvadersHelper.InvaderControlFactory(invader, Scale);
+                        _invaders[invader] = invaderControl;
+                        _sprites.Add(invaderControl);
+                    }
+                }
+            }
+        }
 
+        private void ModelShotMovedEventHandler(object sender, ShotMovedEventArgs e)
+        {
+            if (!e.Dissapeared)
+            {
+                if (e.)
+                {
+
+                }
+            }
+        }
 
         private void TimerTickEventhandler(object sender, object e)
         {
