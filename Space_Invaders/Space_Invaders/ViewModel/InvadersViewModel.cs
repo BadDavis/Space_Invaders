@@ -50,6 +50,7 @@ namespace Space_Invaders.ViewModel
         private DateTime? _leftAction = null;
         private DateTime? _righrAction = null;
 
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public InvadersViewModel()
         {
@@ -63,6 +64,7 @@ namespace Space_Invaders.ViewModel
 
             EndGame();
         }
+
 
         public void StartGame()
         {
@@ -163,6 +165,75 @@ namespace Space_Invaders.ViewModel
         }
 
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        
+
+
+
+        private void TimerTickEventhandler(object sender, object e)
+        {
+            if (_lastPaused != Paused)
+            {
+                _lastPaused = Paused;
+                OnPropertyChanged("Paused");
+            }
+            if (!Paused)
+            {
+                if (_leftAction.HasValue && _righrAction.HasValue)// jesli jednoczesnie zrobil 2 akcje wybierz pozniejsze zdarzenie
+                {
+                    if (DateTime.Compare((DateTime)_leftAction, (DateTime)_righrAction) > 0)//jesli akcja 'w prawo' byla wczesniej idz w lewo
+                    {
+                        _model.MovePlayer(Direction.Left);
+                    }
+                    else // jesli pozniej w prawo
+                    {
+                        _model.MovePlayer(Direction.Right);
+                    }
+                }
+                if (_leftAction.HasValue)//ruch w lewo
+                {
+                    _model.MovePlayer(Direction.Left);
+                }
+                if (_righrAction.HasValue)//ruch w prawo
+                {
+                    _model.MovePlayer(Direction.Right);
+                }
+            }
+
+            _model.Update(Paused);
+
+            if (Score != _model.Score)//sprawdzamy score
+            {
+                Score = _model.Score;
+                OnPropertyChanged("Score");
+            }
+
+            if (_model.Lives >= 0)// aktualizacja _lives gracza
+            {
+                while (_model.Lives > _lives.Count)
+                {
+                    _lives.Add(new object());
+                }
+                while (_model.Lives < _lives.Count)
+                {
+                    _lives.RemoveAt(0);
+                }
+            }
+
+            foreach (FrameworkElement control in _shotInvaders.Keys.ToList())//jesli invader zostal zniszczony, to po animacji niszczenia(0.5s) jest usuwany po 0.5s
+            {
+                if (DateTime.Now - _shotInvaders[control] > TimeSpan.FromSeconds(0.5))
+                {
+                    _sprites.Remove(control);
+                    _shotInvaders.Remove(control);
+                }
+            }
+
+            if (_model.GameOver)//jesli gra sie skonczyla zatrzymujemy stoper i zglaszamy GameOver w viewModel
+            {
+                _timer.Stop();
+                OnPropertyChanged("GameOver");
+            }
+        }
+
     }
 }
