@@ -19,5 +19,20 @@ namespace Space_Invaders.View
         {
             throw new NotImplementedException();
         }
+
+        internal static FrameworkElement PlayerControlFactory(Player player, double scale)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static void MoveElement(FrameworkElement invaderControl, double x, double scale, double v)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static void ResizeElement(FrameworkElement invaderControl, double v1, double v2)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

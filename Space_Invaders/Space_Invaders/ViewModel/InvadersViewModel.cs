@@ -180,6 +180,27 @@ namespace Space_Invaders.ViewModel
                         _invaders[invader] = invaderControl;
                         _sprites.Add(invaderControl);
                     }
+                    else
+                    {
+                        FrameworkElement invaderControl = _invaders[invader];
+                        InvadersHelper.MoveElement(invaderControl, invader.Location.X, Scale, invader.Location.Y * Scale);
+                        InvadersHelper.ResizeElement(invaderControl, invader.Size.Width * Scale, invader.Size.Height * Scale);
+                    }
+                }
+                else if (e.ShipUpdated is Player)
+                {
+                    if (_playerFlashing)
+                    {
+                        AnimatedImage playerImage = _playControl as AnimatedImage;
+                        _playerFlashing = false;
+
+                    }
+                    if (_playControl == null)
+                    {
+
+                        FrameworkElement playerControl = InvadersHelper.PlayerControlFactory(player, Scale);
+                        _sprites.Add(playerControl);
+                    }
                 }
             }
         }
